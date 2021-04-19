@@ -8,39 +8,41 @@ namespace kp1
 {
     class Program
     {
+        //метод для построения дерева
         public static string Tree(string dir)
         {
+            //создается массив из данных директории
             string[] dirs = Directory.GetDirectories(dir);
             foreach (string d in dirs)
             {
-                if (dirs == null)
+                try
                 {
-                    Console.WriteLine("Директория пуста");
+                    //вывод дерева
+                    Console.WriteLine(d + "->");
+                    string[] _dirs = Directory.GetDirectories(d);
+                    foreach (string D in _dirs)
+                    {
+                        Console.WriteLine("   " + D);
+                    }
+                    string[] files = Directory.GetFiles(d);
+                    foreach (string f in files)
+                    {
+                        Console.WriteLine("   " + f);
+                    }
                 }
-                else
+                catch (UnauthorizedAccessException)
                 {
-                    try
-                    {
-                        Console.WriteLine(d + "->");
-                        string[] _dirs = Directory.GetDirectories(d);
-                        foreach (string D in _dirs)
-                        {
-                            Console.WriteLine("   " + D);
-                        }
-                        string[] files = Directory.GetFiles(d);
-                        foreach (string f in files)
-                        {
-                            Console.WriteLine("   " + f);
-                        }
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        Console.Write("Невозожно посмотреть содержимое" + "\n");
-                    }
+                    Console.Write("Невозожно посмотреть содержимое" + "\n");
+                }
+                catch (Exception ex)
+                {
+                    string exx = ex.ToString();
+                    Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
                 }
             }
             return dir;
         }
+        //метод для вычисления размеров директории или файла
         public static double sizeFolder(string folder, ref double catalogSize)
         {
             try
@@ -77,12 +79,14 @@ namespace kp1
                 Console.WriteLine("Отсутствует доступ");
                 return 0;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Console.WriteLine("Произошла ошибка, обратитесь к администратору vip@bk.ru");
+                string exx = ex.ToString();
+                Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
                 return 0;
             }
         }
+        //метод для копирования директории или файла
         public static void CopyDir(DirectoryInfo source, DirectoryInfo destination)
         {
             if(!destination.Exists)
@@ -95,43 +99,53 @@ namespace kp1
             {
                 file.CopyTo(Path.Combine(destination.FullName, file.Name));
             }
-            // Process subdirectories.
+            //поиск подкаталогов
             DirectoryInfo[] dirs = source.GetDirectories();
             foreach (DirectoryInfo dir in dirs)
             {
-                // Get destination directory.
+                //получить каталог назначения
                 string destianantionDir = Path.Combine(destination.FullName, dir.Name);
-                // Call CopyDirectory() recursively.
+                //выозов рекурсии
                 CopyDir(dir, new DirectoryInfo(destianantionDir));
             }
         }
-
+        //метод команд
         public static string Command(string[] arrparams, string _dir, string c, string copyDir)
         {
-
+            //открытие app.config
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            //разбиение введенной строки на элементы
             for (int i = 0; i < arrparams.Length; i++)
             {
                 c = arrparams[0];
                 _dir = arrparams[1];
                 copyDir = arrparams[i];
             }
+            //создание нового файла по старому
             FileInfo fileInfo = new FileInfo(_dir);
             DirectoryInfo dirInfo = new DirectoryInfo(_dir);
             DirectoryInfo copyDirInfo = new DirectoryInfo(copyDir);
+            //если пользователь ввел open
             if (c == "open")
             {
                 try
                 {
+                    //если директория существует
                     if (dirInfo.Exists)
                     {
+                        //вывод содержимого директории
                         Tree(_dir);
+                        //запись в app.config названия директории, чтобы она открывалась при новом открытии приложения
                         config.AppSettings.Settings["startDir"].Value = _dir;
+                        //сохранение записи
                         config.Save(ConfigurationSaveMode.Modified);
+                        //обновление app.config
                         ConfigurationManager.RefreshSection("appSettings");
                     }
+                    //если существует файл
                     else if (fileInfo.Exists)
                     {
+                        //читаем содержимое файла
                         using (FileStream fs = File.OpenRead($"{fileInfo}"))
                         {
                             byte[] arr = new byte[fs.Length];
@@ -147,17 +161,22 @@ namespace kp1
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    string exx = ex.ToString();
+                    Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
                 }
             }
+            //если пользователь ввел info
             else if (c == "info")
             {
                 try
                 {
+                    //если существует директория 
                     if (dirInfo.Exists)
                     {
                         double catalogSize = 0;
+                        //вызов метода вычисления размеров
                         catalogSize = sizeFolder(_dir, ref catalogSize);
+                        //если размер не 0
                         if (catalogSize != 0)
                         {
                             Console.WriteLine($"Название каталога: {dirInfo.Name}\n" +
@@ -175,6 +194,7 @@ namespace kp1
                                 $"Размер каталога: пуст");
                         }
                     }
+                    //если существует файл
                     else if (fileInfo.Exists)
                     {
                         Console.WriteLine($"Название файла: {fileInfo.Name}\n" +
@@ -191,25 +211,36 @@ namespace kp1
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    string exx = ex.ToString();
+                    Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
                 }
             }
+            //если пользователь ввел create
             else if (c == "create")
             {
                 try
                 {
-                    if (!dirInfo.Exists)
+                    //поиск расширения файла
+                    string extension;
+                    extension = Path.GetExtension(_dir);
+                    //если не существует директории и расширение не задано
+                    if (!dirInfo.Exists && extension == "")
                     {
+                        //директория создается
                         dirInfo.Create();
                     }
+                    //если не существует файла
                     else if (!fileInfo.Exists)
                     {
+                        //создается файл
                         fileInfo.Create();
                     }
+                    //если директория существует
                     else if (dirInfo.Exists)
                     {
                         Console.WriteLine("Такая директория уже есть");
                     }
+                    //если файл существует
                     else
                     {
                         Console.WriteLine("Такой файл уже есть");
@@ -225,19 +256,25 @@ namespace kp1
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    string exx = ex.ToString();
+                    Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
                 }
             }
+            //если пользотель вводит delete
             else if (c == "delete")
             {
                 try
                 {
+                    //если директория существует
                     if (dirInfo.Exists)
                     {
+                        //удаление директории
                         dirInfo.Delete(true);
                     }
+                    //если файл существует
                     else if (fileInfo.Exists)
                     {
+                        //удаление файла
                         fileInfo.Delete();
                     }
                     else
@@ -245,31 +282,34 @@ namespace kp1
                         Console.WriteLine("Нет данного пути");
                     }
                 }
-                catch (IOException)
-                {
-                    Console.WriteLine("Папка не пуста, очистите перед удалением");
-                }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    string exx = ex.ToString();
+                    Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
                 }
             }
+            //если пользователь ввел copy
             else if (c == "copy")
             {
                 try
                 {
-                    if (dirInfo.Exists)
+                    //если директория существует 
+                    if (dirInfo.Exists && copyDirInfo.Exists)
                     {
+                        //копирование директории в директорию
                         CopyDir(dirInfo, copyDirInfo);
                     }
+                    //если существует файл и директорию из которой копируем и в какую копируем
                     else if (fileInfo.Exists && dirInfo.Exists && copyDirInfo.Exists)
                     {
+                        //копируем файл
                         fileInfo.CopyTo(copyDir, true);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Произошла ошибка: " + ex);
+                    string exx = ex.ToString();
+                    Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
                 }
             }
             return Convert.ToString(arrparams);
@@ -280,7 +320,9 @@ namespace kp1
             string _dir = "";
             string copyDir = "";
             string dir = "C:\\";
+            //работа с app.config
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            //если значение в app.config равно начальной директории или пустое, то открываем показываем папку С
             if (config.AppSettings.Settings["startDir"].Value == dir || config.AppSettings.Settings["startDir"].Value == "")
             {
                 Tree(dir);
@@ -290,10 +332,12 @@ namespace kp1
                     {
                         Console.WriteLine("Введите команду, для нажмите Ctr+C");
                         string command = Console.ReadLine();
+                        //разбиение введенной строки на слова
                         string[] arrparams = Regex.Matches(command, @"\""(?<token>.+?)\""|(?<token>[^\s]+)")
                                 .Cast<Match>()
                                 .Select(m => m.Groups["token"].Value)
                                 .ToArray();
+                        //если строка не пустая
                         if (arrparams != null)
                         {
                             Command(arrparams, _dir, c, copyDir);
@@ -309,7 +353,8 @@ namespace kp1
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.ToString());
+                        string exx = ex.ToString();
+                        Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
                     }
                 }
             }
@@ -342,9 +387,9 @@ namespace kp1
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.ToString());
+                        string exx = ex.ToString();
+                        Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
                     }
-                    
                 }
             }
         }
