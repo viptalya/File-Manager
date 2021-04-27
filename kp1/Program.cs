@@ -39,10 +39,9 @@ namespace kp1
                 {
                     Console.Write("Невозожно посмотреть содержимое" + "\n");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    string exx = ex.ToString();
-                    Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
+                    Console.WriteLine($"У вас вышла ошибка, для исправления напишите на почту: vip_10@bk.ru");
                 }
             }
 
@@ -85,10 +84,9 @@ namespace kp1
                 Console.WriteLine("Отсутствует доступ");
                 return 0;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                string exx = ex.ToString();
-                Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
+                Console.WriteLine($"У вас вышла ошибка, для исправления напишите на почту: vip_10@bk.ru");
                 return 0;
             }
         }
@@ -158,10 +156,9 @@ namespace kp1
             {
                 Console.WriteLine("Невозможно прочитать содержимое");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                string exx = ex.ToString();
-                Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
+                Console.WriteLine($"У вас вышла ошибка, для исправления напишите на почту: vip_10@bk.ru");
             }
             return _dir;
         }
@@ -174,12 +171,12 @@ namespace kp1
             DirectoryInfo dirInfo = new DirectoryInfo(_dir);
             try
             {
+                double catalogSize = 0;
+                //вызов метода вычисления размеров
+                catalogSize = sizeFolder(_dir, ref catalogSize);
                 //если существует директория 
                 if (dirInfo.Exists)
                 {
-                    double catalogSize = 0;
-                    //вызов метода вычисления размеров
-                    catalogSize = sizeFolder(_dir, ref catalogSize);
                     //если размер не 0
                     if (catalogSize != 0)
                     {
@@ -213,10 +210,9 @@ namespace kp1
                     Console.WriteLine("Нет такого элемента или с ним невозможно взаимодействовать");
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                string exx = ex.ToString();
-                Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
+                Console.WriteLine($"У вас вышла ошибка, для исправления напишите на почту: vip_10@bk.ru");
             }
             return _dir;
         }
@@ -263,10 +259,9 @@ namespace kp1
             {
                 Console.WriteLine("С этим нельзя взаимодействовать");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                string exx = ex.ToString();
-                Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
+                Console.WriteLine($"У вас вышла ошибка, для исправления напишите на почту: vip_10@bk.ru");
             }
             return _dir;
         }
@@ -296,10 +291,9 @@ namespace kp1
                     Console.WriteLine("Нет данного пути");
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                string exx = ex.ToString();
-                Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
+                Console.WriteLine($"У вас вышла ошибка, для исправления напишите на почту: vip_10@bk.ru");
             }
             return _dir;
         }
@@ -324,11 +318,15 @@ namespace kp1
                     //копируем файл
                     fileInfo.CopyTo(copyDir, true);
                 }
+                else if (dirInfo.Exists && !copyDirInfo.Exists)
+                {
+                    copyDirInfo.Create();
+                    CopyDir(dirInfo, copyDirInfo);
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                string exx = ex.ToString();
-                Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
+                Console.WriteLine($"У вас вышла ошибка, для исправления напишите на почту: vip_10@bk.ru");
             }
             return _dir;
         }
@@ -336,6 +334,7 @@ namespace kp1
         //метод команд
         public static string Command(string _dir, string c, string copyDir)
         {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             try
             {
                 Console.WriteLine("Введите команду, для нажмите Ctr+C");
@@ -363,7 +362,15 @@ namespace kp1
                     //если пользователь ввел info
                     else if (c == "info")
                     {
-                        Info(_dir);
+                        if (_dir.Substring(0, 2) != "C:")
+                        {
+                            string start = config.AppSettings.Settings["startDir"].Value + "\\" + _dir;
+                            Info(start);
+                        }
+                        else
+                        {
+                            Info(_dir);
+                        }
                     }
                     //если пользователь ввел create
                     else if (c == "create")
@@ -390,10 +397,9 @@ namespace kp1
             {
                 Console.WriteLine("Ввели пустую строку");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                string exx = ex.ToString();
-                Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
+                Console.WriteLine($"У вас вышла ошибка, для исправления напишите на почту: vip_10@bk.ru");
             }
             return _dir;
         }
