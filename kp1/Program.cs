@@ -13,11 +13,16 @@ namespace kp1
         {
             //создается массив из данных директории
             string[] dirs = Directory.GetDirectories(dir);
+            string[] Files = Directory.GetFiles(dir);
             foreach (string d in dirs)
             {
                 try
                 {
                     //вывод дерева
+                    foreach (string F in Files)
+                    {
+                        Console.WriteLine(F);
+                    }
                     Console.WriteLine(d + "->");
                     string[] _dirs = Directory.GetDirectories(d);
                     foreach (string D in _dirs)
@@ -40,6 +45,7 @@ namespace kp1
                     Console.WriteLine($"У вас вышла ошибка {exx}, для исправления напишите на почту: vip_10@bk.ru");
                 }
             }
+
             return dir;
         }
         //метод для вычисления размеров директории или файла
@@ -147,6 +153,10 @@ namespace kp1
                 {
                     Console.WriteLine("Нет такого элемента");
                 }
+            }
+            catch (IOException)
+            {
+                Console.WriteLine("Невозможно прочитать содержимое");
             }
             catch (Exception ex)
             {
